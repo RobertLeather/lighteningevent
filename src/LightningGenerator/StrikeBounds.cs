@@ -1,0 +1,14 @@
+public static class StrikeBounds
+{
+    public const double LatitudeMin = -90;
+    public const double LatitudeMax = 90;
+    public const double LongitudeMin = -180;
+    public const double LongitudeMax = 180;
+    public const int IntensityMin = 1;
+    public const int IntensityMax = 10;
+    public const int DelayMinMilliseconds = 5;
+    public const int DelayMaxMilliseconds = 12000;
+    public const int RetryMinSeconds = 1;
+    public const int RetryMaxSeconds = 30;
+}
+

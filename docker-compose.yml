@@ -1,0 +1,76 @@
+services:
+  kafka:
+    build:
+      context: ./src/KafkaServer
+    hostname: kafka
+    ports:
+      - "9092:29092"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --describe --topic lightening-events | grep -q 'PartitionCount: 1' && /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --describe --topic lightening-events | grep -q 'ReplicationFactor: 1'"]
+      interval: 5s
+      timeout: 15s
+      retries: 30
+      start_period: 20s
+    restart: unless-stopped
+
+  mongodb:
+    build:
+      context: ./src/MongoDBServer
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+      start_period: 10s
+    restart: unless-stopped
+
+  lightning-generator:
+    build:
+      context: ./src/LightningGenerator
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_TOPIC: lightening-events
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
+  lightening-listener:
+    build:
+      context: ./src/LighteningListener
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_TOPIC: lightening-events
+      KAFKA_GROUP_ID: lightening-listener
+      MONGODB_CONNECTION_STRING: mongodb://mongodb:27017
+      MONGODB_DATABASE: Lightening
+      MONGODB_COLLECTION: LighteningEvents
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  lightning-web:
+    build:
+      context: ./src/LightningWeb
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      MONGODB_CONNECTION_STRING: mongodb://mongodb:27017
+      MONGODB_DATABASE: Lightening
+      MONGODB_COLLECTION: LighteningEvents
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  mongo-data:

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lightning strikes</title>
+  <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+  <a class="skip-link" href="#strike-list">Skip to strike list</a>
+  <div class="page" data-strikes-url="/api/strikes" data-poll-interval-ms="10000">
+    <header class="top">
+      <h1>Lightning strikes</h1>
+      <button type="button" id="pause-updates">Pause updates</button>
+      <p id="poll-error" class="poll-error" role="status" aria-live="polite"></p>
+    </header>
+    <div class="stage">
+      <div id="map" role="region" aria-label="World map of lightning strikes">{{MAP_STATUS}}</div>
+      <section id="strike-list" aria-label="Current lightning strikes" aria-live="polite" tabindex="-1">
+        <h2>Current lightning strikes</h2>
+        <p id="empty-strikes">No current strikes</p>
+        <ul id="strike-items"></ul>
+      </section>
+    </div>
+  </div>
+  {{MAP_SCRIPT}}
+  <script src="/js/app.js"></script>
+</body>
+</html>
