@@ -81,7 +81,7 @@ The two infrastructure projects, `KafkaServer` and `MongoDBServer`, contain no a
 
 1. Start the stack with Docker Compose (section 8.1).
 2. Open the website. A Google map is centered on the world.
-3. Within two minutes, circles start appearing. Each circle shows an intensity from 1 to 10.
+3. Within 12 seconds, circles start appearing. Each circle shows an intensity from 1 to 10.
 4. The same page is readable on a phone and on a desktop. Strikes are listed in text as well as drawn on the map, and the layout uses flexbox so the map and the list fit the screen.
 5. Leave the page open. Every 10 seconds the set of circles is replaced with the strikes still stored and not yet expired.
 6. Stop the generator process. New circles stop appearing. Circles already stored remain until their expiry.
@@ -101,7 +101,7 @@ The source description used two spellings, two collection names, and two poll in
 | D-004 | The Kafka topic is **`lightening-events`**. | The source did not name a topic. This name follows the collection. |
 | D-005 | The website project is **`LightningWeb`**. | The source asked for a website and did not name the project. |
 | D-006 | Intensity is an **integer from 1 to 10 inclusive**. | The stakeholder set this scale. No unit is displayed. Values outside 1 to 10 are invalid on the Kafka message, in MongoDB, and on the website. |
-| D-007 | While the generator runs, the gap between publishes is a **random value from 50 milliseconds to 120 seconds inclusive**. | "At least every 2 minutes" means a strike happens at least once per 120 seconds, so the gap is at most 120 seconds. "A maximum of 20 such events per second" means the gap is at least 50 milliseconds. The delay is drawn uniformly from that closed range on every cycle. |
+| D-007 | While the generator runs, the gap between publishes is a **random value from 5 milliseconds to 12 seconds inclusive**. | The generator is intentionally tuned to fire more often. The delay is drawn uniformly from that closed range on every cycle, so a publish can happen as quickly as 5 milliseconds and as slowly as 12,000 milliseconds. |
 | D-008 | Latitude is uniform on [-90, 90] and longitude is uniform on [-180, 180], drawn independently. | The source asks for a random strike. Polar clustering from uniform latitude is accepted. |
 | D-009 | Product projects live under `src/`. Test projects are allowed and are named `<Project>.Tests`. | Keeps the five product projects exactly as named, and gives agents one place to put tests. |
 | D-010 | Docker Compose runs all five parts, so the listener and the website have Dockerfiles as well as the three projects the source named. | The source requires Dockerfiles for the generator, Kafka, and MongoDB. A single local run also containerizes the listener and the website. |
@@ -386,17 +386,17 @@ The same random seed SHALL reproduce the same sequence. The bounds SHALL be the 
 
 #### REQ-GEN-003 — Rate
 
-WHILE the process is running, THE SYSTEM SHALL draw the delay until the next publish uniformly from 50 milliseconds through 120,000 milliseconds inclusive, and SHALL wait that long between publishes. The first publish SHALL happen within 120 seconds of start.
+WHILE the process is running, THE SYSTEM SHALL draw the delay until the next publish uniformly from 5 milliseconds through 12,000 milliseconds inclusive, and SHALL wait that long between publishes. The first publish SHALL happen within 12 seconds of start.
 
 **Acceptance — automated test**
 
-- 10,000 seeded delay draws all lie on [50, 120000].
-- The named constants equal `50` and `120000`.
+- 10,000 seeded delay draws all lie on [5, 12000].
+- The named constants equal `5` and `12000`.
 - The same seed reproduces the same delays.
 
 **Acceptance — demonstration**
 
-- A running generator publishes at least one message within 120 seconds.
+- A running generator publishes at least one message within 12 seconds.
 
 #### REQ-GEN-004 — Publish the contract
 
@@ -912,7 +912,7 @@ requirementIds:
 | REQ-SOL-006 | Solution | Failures have to be visible in container logs. |
 | REQ-GEN-001 | LightningGenerator | Runs until stopped. |
 | REQ-GEN-002 | LightningGenerator | Random latitude, longitude, and intensity. |
-| REQ-GEN-003 | LightningGenerator | At least every 2 minutes, at most 20 per second. D-007. |
+| REQ-GEN-003 | LightningGenerator | Random delay from 5 ms to 12 s inclusive. D-007. |
 | REQ-GEN-004 | LightningGenerator | Event transmitted to Kafka. |
 | REQ-GEN-005 | LightningGenerator | Generator only publishes. |
 | REQ-GEN-006 | LightningGenerator | Continuous process has to survive a broker outage. |
